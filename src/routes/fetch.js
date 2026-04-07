@@ -12,6 +12,7 @@ async function getBrowser() {
   if (browser) return browser;
   browser = await chromium.launch({
     headless: true,
+    executablePath: chromium.executablePath(),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
