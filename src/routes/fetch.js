@@ -1,7 +1,15 @@
 'use strict';
 
+const path = require('path');
+const os = require('os');
 const express  = require('express');
 const puppeteer = require('puppeteer');
+
+// Belt-and-suspenders: ensure the cache dir env var is always set so that
+// puppeteer.executablePath() agrees with where install-chrome.js put the binary.
+if (!process.env.PUPPETEER_CACHE_DIR) {
+  process.env.PUPPETEER_CACHE_DIR = path.join(os.homedir(), '.cache', 'puppeteer');
+}
 
 const router = express.Router();
 
