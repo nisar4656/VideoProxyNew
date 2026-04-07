@@ -1,15 +1,7 @@
 'use strict';
 
-const path = require('path');
-const os = require('os');
 const express  = require('express');
-const puppeteer = require('puppeteer');
-
-// Belt-and-suspenders: ensure the cache dir env var is always set so that
-// puppeteer.executablePath() agrees with where install-chrome.js put the binary.
-if (!process.env.PUPPETEER_CACHE_DIR) {
-  process.env.PUPPETEER_CACHE_DIR = path.join(os.homedir(), '.cache', 'puppeteer');
-}
+const puppeteer = require('puppeteer-core');
 
 const router = express.Router();
 
@@ -20,10 +12,7 @@ async function getBrowser() {
   if (browser && browser.connected) return browser;
   browser = await puppeteer.launch({
     headless: true,
-    // Explicitly point at the binary Puppeteer downloaded during install.
-    // Without this, on some hosts (e.g. Render) Puppeteer falls back to a
-    // system Chrome that doesn't exist and throws MODULE_NOT_FOUND / path errors.
-    executablePath: puppeteer.executablePath(),
+    executablePath: process.env.CHROME_BIN || '/usr/bin/chromium',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',

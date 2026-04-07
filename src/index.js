@@ -1,16 +1,5 @@
 'use strict';
 
-// ── Set Puppeteer cache dir BEFORE puppeteer is loaded anywhere ───────────────
-// When running from a bundled dist/index.js the .puppeteerrc.cjs file is not
-// found via CWD traversal, so Puppeteer falls back to its internal default
-// which may not match where `npx puppeteer browsers install chrome` put the
-// binary.  Setting the env var here guarantees both install and runtime agree.
-const path = require('path');
-const os = require('os');
-if (!process.env.PUPPETEER_CACHE_DIR) {
-  process.env.PUPPETEER_CACHE_DIR = path.join(os.homedir(), '.cache', 'puppeteer');
-}
-
 require('dotenv').config();
 const app = require('./server');
 const config = require('./config');
