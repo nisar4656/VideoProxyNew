@@ -1,18 +1,54 @@
 'use strict';
 
+const fs     = require('fs');
 const express  = require('express');
 const puppeteer = require('puppeteer-core');
 
 const router = express.Router();
+
+// ── Find the Chromium / Chrome binary ────────────────────────────────────────
+// Checked in priority order.  CHROME_BIN env var always wins.
+const CHROME_CANDIDATES = [
+  process.env.CHROME_BIN,
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/google-chrome',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium',
+  '/snap/bin/chromium',
+  '/usr/lib/chromium/chromium',
+  '/usr/lib/chromium-browser/chromium-browser',
+  // macOS (for local dev)
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/Applications/Chromium.app/Contents/MacOS/Chromium',
+];
+
+function findChrome() {
+  for (const p of CHROME_CANDIDATES) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
 
 // ── Shared browser instance (reused across requests) ──────────────────────────
 let browser = null;
 
 async function getBrowser() {
   if (browser && browser.connected) return browser;
+
+  const executablePath = findChrome();
+  if (!executablePath) {
+    throw new Error(
+      'No Chrome/Chromium binary found. ' +
+      'Set the CHROME_BIN environment variable to the full path of your Chrome/Chromium executable. ' +
+      'Checked: ' + CHROME_CANDIDATES.filter(Boolean).join(', ')
+    );
+  }
+
+  console.log('  [fetch] using browser:', executablePath);
+
   browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.CHROME_BIN || '/usr/bin/chromium',
+    executablePath,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
