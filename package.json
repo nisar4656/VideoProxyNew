@@ -7,7 +7,7 @@
     "postinstall": "npx playwright install chromium",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.js",
-    "build": "npm install && npx playwright install chromium && npm run build"
+    "build": "npm install && npx playwright install chromium"
   }, 
   "keywords": [
     "video",
