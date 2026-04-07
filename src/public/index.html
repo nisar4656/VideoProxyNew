@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VideoProxy Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d0d0d;
+      --surface:  #161616;
+      --border:   #2a2a2a;
+      --primary:  #e63946;
+      --primary-h:#ff4d5a;
+      --text:     #f0f0f0;
+      --muted:    #888;
+      --input-bg: #1e1e1e;
+      --radius:   10px;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 60px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      width: 100%;
+      max-width: 860px;
+    }
+    .logo {
+      width: 38px; height: 38px;
+      background: var(--primary);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo svg { width: 20px; height: 20px; fill: #fff; }
+    header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -.3px; }
+    header p  { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 860px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: .8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      font-weight: 600;
+    }
+    input {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: .92rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    input:focus { border-color: var(--primary); }
+    input::placeholder { color: #444; }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      padding: 11px 22px;
+      transition: background .18s, transform .1s;
+    }
+    button:active { transform: scale(.97); }
+    .btn-play {
+      background: var(--primary);
+      color: #fff;
+      display: flex; align-items: center; gap: 8px;
+      flex: 1;
+      justify-content: center;
+    }
+    .btn-play:hover { background: var(--primary-h); }
+    .btn-play svg { width: 16px; height: 16px; fill: #fff; flex-shrink: 0; }
+    .btn-copy {
+      background: #252525;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-copy:hover { background: #2e2e2e; }
+    .btn-clear {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-clear:hover { color: var(--text); }
+    .btn-detect {
+      background: #1a3a5c;
+      color: #5b9cf6;
+      border: 1px solid #1e4a7a;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      padding: 11px 22px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .18s;
+    }
+    .btn-detect:hover { background: #1e4a7a; }
+    .btn-detect:disabled { opacity: .5; cursor: not-allowed; }
+    #detect-card { margin-bottom: 16px; }
+    .stream-result {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: .82rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .stream-result .stream-url { color: #5b9cf6; flex: 1; word-break: break-all; }
+    .stream-result .badge { flex-shrink: 0; }
+    .use-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .use-btn:hover { background: var(--primary-h); }
+    .proxy-url-strip {
+      display: none;
+      margin-top: 16px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+      font-size: .78rem;
+      color: var(--muted);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+    .proxy-url-strip span { color: #5b9cf6; }
+    .status-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: .82rem;
+    }
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .4px;
+    }
+    .badge-info    { background:#1a3a5c; color:#5b9cf6; }
+    .badge-ok      { background:#1a3d2b; color:#4ade80; }
+    .badge-error   { background:#3d1a1a; color:#f87171; }
+    .badge-loading { background:#2a2a18; color:#facc15; }
+    .player-wrap {
+      display: none;
+      width: 100%;
+      max-width: 860px;
+      margin-top: 20px;
+    }
+    .player-wrap.visible { display: block; }
+    .player-card {
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    video {
+      width: 100%;
+      display: block;
+      max-height: 480px;
+      background: #000;
+    }
+    .error-box {
+      display: none;
+      background: #1f0a0a;
+      border: 1px solid #5c1515;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: .85rem;
+      color: #f87171;
+      margin-top: 16px;
+      line-height: 1.6;
+      width: 100%;
+      max-width: 860px;
+    }
+    .error-box.visible { display: block; }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <div>
+      <h1>VideoProxy Player</h1>
+      <p>Proxy &amp; play HLS &middot; DASH &middot; MP4 directly in the browser</p>
+    </div>
+  </header>
+
+  <!-- ── Auto-Detect Card ── -->
+  <div class="card" id="detect-card">
+    <div style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:10px;">
+      🔍 Auto-Detect Stream from Page
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <input id="inp-page" type="url" placeholder="https://sansat.link/ch?id=17"
+        autocomplete="off" spellcheck="false"
+        style="flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.92rem;padding:10px 12px;outline:none;" />
+      <button class="btn-detect" id="btn-detect" onclick="autoDetect()">
+        <span id="detect-label">Auto-Detect</span>
+      </button>
+    </div>
+    <div class="status-bar" id="detect-status" style="margin-top:10px;">
+      <span class="badge" id="detect-badge"></span>
+      <span id="detect-msg"></span>
+    </div>
+    <div id="detect-results" style="display:none;margin-top:12px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="form-grid">
+
+      <label class="full">
+        Stream URL
+        <input id="inp-url" type="url" placeholder="https://example.com/stream.m3u8" autocomplete="off" spellcheck="false" />
+      </label>
+
+      <label>
+        Referer
+        <input id="inp-referer" type="url" placeholder="https://fisherman.click/" autocomplete="off" spellcheck="false" />
+      </label>
+
+      <label>
+        Origin
+        <input id="inp-origin" type="url" placeholder="https://fisherman.click" autocomplete="off" spellcheck="false" />
+      </label>
+
+      <label class="full">
+        User-Agent
+        <input id="inp-ua" type="text"
+          value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+          spellcheck="false" />
+      </label>
+
+    </div>
+
+    <div class="actions">
+      <button class="btn-play" onclick="play()">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        Play
+      </button>
+      <button class="btn-copy" id="btn-copy" onclick="copyProxyUrl()">Copy URL</button>
+      <button class="btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="proxy-url-strip" id="proxy-strip">
+      <b style="color:var(--muted)">Proxy URL &rarr;&nbsp;</b><span id="proxy-url-text"></span>
+    </div>
+
+    <div class="status-bar" id="status-bar">
+      <span class="badge" id="status-badge"></span>
+      <span id="status-msg"></span>
+    </div>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+
+  <div class="player-wrap" id="player-wrap">
+    <div class="player-card">
+      <video id="video" controls playsinline></video>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    function setStatus(type, msg) {
+      const labels = { info:'INFO', ok:'OK', error:'ERROR', loading:'LOADING' };
+      $('status-bar').style.display   = 'flex';
+      $('status-badge').className     = 'badge badge-' + type;
+      $('status-badge').textContent   = labels[type] || type.toUpperCase();
+      $('status-msg').textContent     = msg;
+    }
+
+    function showError(msg) {
+      const box = $('error-box');
+      box.textContent = msg;
+      box.classList.add('visible');
+      setStatus('error', msg.slice(0, 100));
+    }
+
+    function clearError() {
+      $('error-box').textContent = '';
+      $('error-box').classList.remove('visible');
+    }
+
+    function detectType(url) {
+      const u = url.toLowerCase().split('?')[0];
+      if (u.endsWith('.m3u8') || u.endsWith('.m3u')) return 'hls';
+      if (u.endsWith('.mpd'))                         return 'dash';
+      return 'mp4';
+    }
+
+    function buildProxyUrl() {
+      const streamUrl = $('inp-url').value.trim();
+      if (!streamUrl) return null;
+
+      const params = new URLSearchParams();
+      const referer = $('inp-referer').value.trim();
+      const origin  = $('inp-origin').value.trim();
+      const ua      = $('inp-ua').value.trim();
+
+      if (referer) params.set('referer', referer);
+      if (origin)  params.set('origin', origin);
+      if (ua)      params.set('headers', btoa(JSON.stringify({ 'User-Agent': ua })));
+
+      params.set('url', streamUrl);
+      return window.location.origin + '/proxy?' + params.toString();
+    }
+
+    function updateProxyStrip() {
+      const url = buildProxyUrl();
+      if (!url) { $('proxy-strip').style.display = 'none'; return; }
+      $('proxy-strip').style.display = 'block';
+      $('proxy-url-text').textContent = url;
+    }
+
+    ['inp-url','inp-referer','inp-origin','inp-ua'].forEach(id => {
+      $(id).addEventListener('input', updateProxyStrip);
+    });
+
+    function copyProxyUrl() {
+      const url = buildProxyUrl();
+      if (!url) { showError('Enter a stream URL first.'); return; }
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = $('btn-copy');
+        btn.textContent = '✓ Copied';
+        setTimeout(() => btn.textContent = 'Copy URL', 1800);
+      });
+    }
+
+    let hlsInstance  = null;
+    let dashInstance = null;
+
+    function destroyPlayers() {
+      if (hlsInstance)  { hlsInstance.destroy(); hlsInstance = null; }
+      if (dashInstance) { dashInstance.reset();   dashInstance = null; }
+      const v = $('video');
+      v.pause();
+      v.removeAttribute('src');
+      v.load();
+    }
+
+    function play() {
+      clearError();
+      const proxyUrl  = buildProxyUrl();
+      if (!proxyUrl) { showError('Please enter a stream URL.'); return; }
+
+      const streamUrl = $('inp-url').value.trim();
+      const type      = detectType(streamUrl);
+      const video     = $('video');
+
+      destroyPlayers();
+      setStatus('loading', 'Connecting\u2026');
+      updateProxyStrip();
+      $('player-wrap').classList.add('visible');
+
+      if (type === 'hls') {
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+          hlsInstance = new Hls({
+            // ── Buffer tuning ──────────────────────────────────────────────
+            maxBufferLength:        60,   // buffer up to 60 s of video
+            maxMaxBufferLength:     120,  // allow burst up to 120 s
+            maxBufferSize:          120 * 1000 * 1000, // 120 MB buffer
+            maxBufferHole:          0.5,
+            // ── Startup ────────────────────────────────────────────────────
+            startLevel:             -1,   // auto-select quality
+            abrEwmaDefaultEstimate: 1_000_000, // start assuming 1 Mbps
+            // ── Retry / recovery ───────────────────────────────────────────
+            manifestLoadingMaxRetry:     6,
+            manifestLoadingRetryDelay:   500,
+            levelLoadingMaxRetry:        6,
+            fragLoadingMaxRetry:         6,
+            fragLoadingRetryDelay:       500,
+            // ── Performance ────────────────────────────────────────────────
+            enableWorker:           true, // offload demux to Web Worker
+            lowLatencyMode:         false,
+            progressive:            true,
+          });
+          hlsInstance.loadSource(proxyUrl);
+          hlsInstance.attachMedia(video);
+          hlsInstance.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+            const levels = data.levels.length;
+            setStatus('ok', 'HLS ready \u2014 ' + levels + ' quality level' + (levels !== 1 ? 's' : ''));
+            video.play().catch(() => {});
+          });
+          hlsInstance.on(Hls.Events.ERROR, (_, d) => {
+            if (d.fatal) {
+              if (d.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                setStatus('loading', 'Network error, retrying\u2026');
+                hlsInstance.startLoad();
+              } else if (d.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                setStatus('loading', 'Media error, recovering\u2026');
+                hlsInstance.recoverMediaError();
+              } else {
+                showError('HLS error: ' + d.type + ' \u2014 ' + d.details);
+              }
+            }
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = proxyUrl;
+          video.addEventListener('loadedmetadata', () => {
+            setStatus('ok', 'HLS (native) \u2014 playing');
+            video.play().catch(() => {});
+          }, { once: true });
+        } else {
+          showError('HLS is not supported in this browser.');
+        }
+      } else if (type === 'dash') {
+        dashInstance = dashjs.MediaPlayer().create();
+        dashInstance.initialize(video, proxyUrl, true);
+        dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+          setStatus('ok', 'DASH stream ready \u2014 playing');
+        });
+        dashInstance.on(dashjs.MediaPlayer.events.ERROR, e => {
+          showError('DASH error: ' + JSON.stringify(e.error));
+        });
+      } else {
+        video.src = proxyUrl;
+        video.addEventListener('canplay', () => {
+          setStatus('ok', 'Stream ready \u2014 playing');
+          video.play().catch(() => {});
+        }, { once: true });
+        video.addEventListener('error', () => {
+          showError('Video error: ' + (video.error ? video.error.message : 'unknown'));
+        }, { once: true });
+      }
+    }
+
+    // ── Auto-Detect ───────────────────────────────────────────────────────
+    function setDetectStatus(type, msg) {
+      const labels = { info:'INFO', ok:'OK', error:'ERROR', loading:'SCANNING' };
+      $('detect-status').style.display   = 'flex';
+      $('detect-badge').className        = 'badge badge-' + type;
+      $('detect-badge').textContent      = labels[type] || type.toUpperCase();
+      $('detect-msg').textContent        = msg;
+    }
+
+    function useStream(url, referer, origin, userAgent) {
+      $('inp-url').value     = url;
+      $('inp-referer').value = referer || '';
+      $('inp-origin').value  = origin  || '';
+      $('inp-ua').value      = userAgent || $('inp-ua').value;
+      updateProxyStrip();
+      // Scroll to player card
+      document.querySelector('.card:not(#detect-card)').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function autoDetect() {
+      const pageUrl = $('inp-page').value.trim();
+      if (!pageUrl) { setDetectStatus('error', 'Enter a page URL first'); return; }
+
+      const btn = $('btn-detect');
+      btn.disabled = true;
+      $('detect-label').textContent = 'Scanning…';
+      $('detect-results').style.display = 'none';
+      $('detect-results').innerHTML = '';
+      setDetectStatus('loading', 'Opening page in headless browser, waiting for stream…');
+
+      try {
+        const enc = encodeURIComponent(pageUrl);
+        const resp = await fetch('/fetch?page=' + enc + '&timeout=25000');
+        let data;
+        const rawText = await resp.text();
+        try { data = JSON.parse(rawText); } catch {
+          setDetectStatus('error', 'Server returned an unexpected response. Is the server running?');
+          return;
+        }
+
+        if (!resp.ok) {
+          setDetectStatus('error', (data.error || 'Unknown error') + (data.tip ? ' — ' + data.tip : ''));
+          return;
+        }
+
+        setDetectStatus('ok', 'Found ' + (data.allFound ? data.allFound.length : 1) + ' stream(s)');
+
+        const results = $('detect-results');
+        results.style.display = 'block';
+
+        // Best match — auto-fill immediately
+        useStream(data.url, data.referer, data.origin, data.userAgent);
+
+        // Show all found streams
+        const all = data.allFound || [{ url: data.url, type: data.type }];
+        all.forEach((s, i) => {
+          const div = document.createElement('div');
+          div.className = 'stream-result';
+          div.innerHTML =
+            '<span class="badge badge-' + (s.type === 'hls' ? 'ok' : 'info') + '">' + (s.type || 'stream').toUpperCase() + '</span>' +
+            '<span class="stream-url">' + s.url.slice(0, 120) + (s.url.length > 120 ? '…' : '') + '</span>' +
+            '<button class="use-btn" data-idx="' + i + '">Use</button>';
+          results.appendChild(div);
+        });
+
+        // Wire up Use buttons
+        results.querySelectorAll('.use-btn').forEach(b => {
+          b.addEventListener('click', () => {
+            const idx = parseInt(b.dataset.idx);
+            const s   = all[idx];
+            useStream(s.url, data.referer, data.origin, data.userAgent);
+          });
+        });
+
+      } catch (e) {
+        setDetectStatus('error', 'Request failed: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        $('detect-label').textContent = 'Auto-Detect';
+      }
+    }
+
+    $('inp-page').addEventListener('keydown', e => { if (e.key === 'Enter') autoDetect(); });
+
+    function clearAll() {
+      destroyPlayers();
+      clearError();
+      $('inp-url').value     = '';
+      $('inp-referer').value = '';
+      $('inp-origin').value  = '';
+      $('inp-ua').value      = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+      $('proxy-strip').style.display = 'none';
+      $('status-bar').style.display  = 'none';
+      $('player-wrap').classList.remove('visible');
+    }
+
+    $('inp-url').addEventListener('keydown', e => { if (e.key === 'Enter') play(); });
+
+    // Pre-fill from ?url= / ?referer= / ?origin= query params
+    (function() {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('url'))     $('inp-url').value     = p.get('url');
+      if (p.get('referer')) $('inp-referer').value  = p.get('referer');
+      if (p.get('origin'))  $('inp-origin').value   = p.get('origin');
+      if (p.get('url'))     updateProxyStrip();
+    })();
+  </script>
+</body>
+</html>

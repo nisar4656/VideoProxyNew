@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment variables (copy .env.example → .env and fill in your values)
+.env
+
+# Logs
+*.log
+logs/
+
+# Production build output
+dist/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
