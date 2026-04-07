@@ -23,7 +23,7 @@
     "esbuild": "^0.28.0",
     "express": "^4.19.2",
     "node-cache": "^5.1.2",
-    "puppeteer-core": "^22.15.0"
+    "youtube-dl-exec": "^3.1.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

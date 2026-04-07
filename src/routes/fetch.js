@@ -1,10 +1,103 @@
 'use strict';
 
-const fs     = require('fs');
-const express  = require('express');
-const puppeteer = require('puppeteer-core');
+const express   = require('express');
+const youtubeDl = require('youtube-dl-exec');
 
 const router = express.Router();
+
+/**
+ * GET /fetch?page=<encoded-url>
+ * GET /fetch?url=<encoded-url>
+ *
+ * Uses yt-dlp to extract the stream URL + request headers from any supported
+ * page — no headless browser required.
+ *
+ * Returns: { url, type, referer, origin, userAgent, useragent, cookie }
+ */
+router.get('/', async (req, res) => {
+  const pageParam = req.query.page || req.query.url;
+  const pageUrl   = pageParam ? decodeURIComponent(pageParam) : null;
+
+  if (!pageUrl) {
+    return res.status(400).json({
+      error:   'Missing ?page= parameter',
+      example: '/fetch?page=https%3A%2F%2Fexample.com%2Fwatch%3Fid%3D1',
+    });
+  }
+
+  let targetUrl;
+  try   { targetUrl = new URL(pageUrl).href; }
+  catch { return res.status(400).json({ error: 'Invalid page URL' }); }
+
+  try {
+    const info = await youtubeDl(targetUrl, {
+      dumpSingleJson:      true,
+      noWarnings:          true,
+      noCallHome:          true,
+      preferFreeFormats:   true,
+      skipDownload:        true,
+      // Give it a real browser UA so sites don't block it
+      addHeaders: [
+        'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      ],
+    });
+
+    // ── Pick the best stream URL ────────────────────────────────────────────
+    let streamUrl  = null;
+    let streamType = 'direct';
+
+    if (info.url) {
+      streamUrl = info.url;
+    } else if (Array.isArray(info.formats) && info.formats.length > 0) {
+      // Prefer HLS → DASH → last format
+      const hls  = info.formats.find(f => f.protocol === 'm3u8_native' || f.protocol === 'm3u8' || (f.url && /\.m3u8/i.test(f.url)));
+      const dash = info.formats.find(f => (f.url && /\.mpd/i.test(f.url)));
+      const best = hls || dash || info.formats[info.formats.length - 1];
+      streamUrl  = best.url;
+    }
+
+    if (!streamUrl) {
+      return res.status(404).json({
+        error: 'No stream URL found on this page.',
+        tip:   'yt-dlp could not extract a stream from this URL.',
+      });
+    }
+
+    if (/\.m3u8/i.test(streamUrl))  streamType = 'hls';
+    else if (/\.mpd/i.test(streamUrl)) streamType = 'dash';
+
+    const h          = info.http_headers || {};
+    const originObj  = new URL(targetUrl);
+    const userAgent  = h['User-Agent'] || h['user-agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+    return res.json({
+      url:       streamUrl,
+      type:      streamType,
+      referer:   h['Referer']  || h['referer']  || targetUrl,
+      origin:    h['Origin']   || h['origin']   || (originObj.protocol + '//' + originObj.host),
+      userAgent,
+      useragent: userAgent,
+      cookie:    h['Cookie']   || h['cookie']   || null,
+    });
+
+  } catch (err) {
+    console.error('  [fetch] yt-dlp error:', err.message || err);
+    const msg = (err.stderr || err.message || String(err)).slice(0, 500);
+
+    if (/unsupported url/i.test(msg)) {
+      return res.status(404).json({
+        error: 'This site is not supported by yt-dlp.',
+        tip:   'Check supported sites: https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md',
+        message: msg,
+      });
+    }
+
+    return res.status(502).json({ error: 'Fetch failed', message: msg });
+  }
+});
+
+module.exports = router;
+
 
 // ── Find the Chromium / Chrome binary ────────────────────────────────────────
 // Checked in priority order.  CHROME_BIN env var always wins.
