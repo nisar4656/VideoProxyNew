@@ -24,7 +24,10 @@ async function main() {
     target: ['node18'],
     sourcemap: false,
     minify: false,
-    external: ['puppeteer'],
+    // Playwright (and its sub-packages) use native binaries, dynamic requires,
+    // and optional dependencies that cannot be bundled by esbuild.
+    // Mark them all external so they are loaded from node_modules at runtime.
+    external: ['playwright', 'playwright-core', 'chromium-bidi'],
     logLevel: 'info',
   });
 
