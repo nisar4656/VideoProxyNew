@@ -12,6 +12,10 @@ async function getBrowser() {
   if (browser && browser.connected) return browser;
   browser = await puppeteer.launch({
     headless: true,
+    // Explicitly point at the binary Puppeteer downloaded during install.
+    // Without this, on some hosts (e.g. Render) Puppeteer falls back to a
+    // system Chrome that doesn't exist and throws MODULE_NOT_FOUND / path errors.
+    executablePath: puppeteer.executablePath(),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
