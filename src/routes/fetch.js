@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Shared browser instance
 let browser = null;
-
+ 
 async function getBrowser() {
   if (browser) return browser;
   if (!browser) {
