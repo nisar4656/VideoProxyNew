@@ -1,6 +1,6 @@
 'use strict';
 
-const express      = require('express');
+const express = require('express');
 const { chromium } = require('playwright');
 
 const router = express.Router();
@@ -10,19 +10,21 @@ let browser = null;
 
 async function getBrowser() {
   if (browser) return browser;
-  browser = await chromium.launch({
-    headless: true,
-    executablePath: chromium.executablePath(),
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-first-run',
-      '--no-zygote',
-      '--mute-audio',
-    ],
-  });
+  if (!browser) {
+    browser = await chromium.launch({
+      headless: true,
+      executablePath: chromium.executablePath(),
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--mute-audio',
+      ],
+    });
+  }
   browser.on('disconnected', () => { browser = null; });
   return browser;
 }
@@ -42,17 +44,17 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
  */
 router.get('/', async (req, res) => {
   const pageParam = req.query.page || req.query.url;
-  const pageUrl   = pageParam ? decodeURIComponent(pageParam) : null;
+  const pageUrl = pageParam ? decodeURIComponent(pageParam) : null;
 
   if (!pageUrl) {
     return res.status(400).json({
-      error:   'Missing ?page= parameter',
+      error: 'Missing ?page= parameter',
       example: '/fetch?page=https%3A%2F%2Fexample.com%2Fwatch%3Fid%3D1',
     });
   }
 
   let targetUrl;
-  try   { targetUrl = new URL(pageUrl).href; }
+  try { targetUrl = new URL(pageUrl).href; }
   catch { return res.status(400).json({ error: 'Invalid page URL' }); }
 
   const timeout = Math.min(parseInt(req.query.timeout) || 20_000, 60_000);
@@ -75,12 +77,12 @@ router.get('/', async (req, res) => {
       const h = request.headers();
       const originObj = new URL(targetUrl);
       found.push({
-        type:      url.includes('.m3u8') ? 'hls' : 'dash',
+        type: url.includes('.m3u8') ? 'hls' : 'dash',
         url,
-        referer:   h['referer']    || targetUrl,
-        origin:    h['origin']     || (originObj.protocol + '//' + originObj.host),
+        referer: h['referer'] || targetUrl,
+        origin: h['origin'] || (originObj.protocol + '//' + originObj.host),
         userAgent: h['user-agent'] || UA,
-        cookie:    h['cookie']     || null,
+        cookie: h['cookie'] || null,
       });
     });
 
@@ -94,22 +96,22 @@ router.get('/', async (req, res) => {
 
     if (found.length === 0) {
       return res.status(404).json({
-        error:   'No HLS/DASH manifest found on this page within the timeout.',
+        error: 'No HLS/DASH manifest found on this page within the timeout.',
         timeout,
-        tip:     'The stream may load only after user interaction. Try increasing ?timeout=',
+        tip: 'The stream may load only after user interaction. Try increasing ?timeout=',
       });
     }
 
     const best = found[0];
     return res.json({
-      url:       best.url,
-      type:      best.type,
-      referer:   best.referer,
-      origin:    best.origin,
+      url: best.url,
+      type: best.type,
+      referer: best.referer,
+      origin: best.origin,
       userAgent: best.userAgent,
       useragent: best.userAgent,
-      cookie:    best.cookie,
-      allFound:  found.map(f => ({ url: f.url, type: f.type })),
+      cookie: best.cookie,
+      allFound: found.map(f => ({ url: f.url, type: f.type })),
     });
 
   } catch (err) {
@@ -119,8 +121,8 @@ router.get('/', async (req, res) => {
     console.error('  [fetch] playwright error:', err.message);
     return res.status(502).json({ error: 'Fetch failed', message: err.message });
   } finally {
-    if (page)    await page.close().catch(() => {});
-    if (context) await context.close().catch(() => {});
+    if (page) await page.close().catch(() => { });
+    if (context) await context.close().catch(() => { });
   }
 });
 

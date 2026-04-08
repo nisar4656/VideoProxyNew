@@ -7,7 +7,12 @@
     "postinstall": "npx playwright install chromium",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.js",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "pm2start": "pm2 start dist/index.js -i max --name video-proxy",
+    "pm2prod": "pm2 start dist/index.js -i max --name video-proxy --env production",
+    "pm2stop": "pm2 stop video-proxy",
+    "pm2restart": "pm2 restart video-proxy",
+    "pm2logs": "pm2 logs video-proxy"
   },
   "keywords": [
     "video",

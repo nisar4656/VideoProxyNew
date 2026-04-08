@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,18 +8,26 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
   <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:       #0d0d0d;
-      --surface:  #161616;
-      --border:   #2a2a2a;
-      --primary:  #e63946;
-      --primary-h:#ff4d5a;
-      --text:     #f0f0f0;
-      --muted:    #888;
-      --input-bg: #1e1e1e;
-      --radius:   10px;
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --primary: #e63946;
+      --primary-h: #ff4d5a;
+      --text: #f0f0f0;
+      --muted: #888;
+      --input-bg: #1e1e1e;
+      --radius: 10px;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -29,6 +38,7 @@
       align-items: center;
       padding: 32px 16px 60px;
     }
+
     header {
       display: flex;
       align-items: center;
@@ -37,16 +47,36 @@
       width: 100%;
       max-width: 860px;
     }
+
     .logo {
-      width: 38px; height: 38px;
+      width: 38px;
+      height: 38px;
       background: var(--primary);
       border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
     }
-    .logo svg { width: 20px; height: 20px; fill: #fff; }
-    header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -.3px; }
-    header p  { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+    .logo svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+
+    header p {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -55,12 +85,17 @@
       width: 100%;
       max-width: 860px;
     }
+
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
-    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-grid .full {
+      grid-column: 1 / -1;
+    }
+
     label {
       display: flex;
       flex-direction: column;
@@ -71,6 +106,7 @@
       letter-spacing: .6px;
       font-weight: 600;
     }
+
     input {
       background: var(--input-bg);
       border: 1px solid var(--border);
@@ -82,14 +118,22 @@
       transition: border-color .2s;
       width: 100%;
     }
-    input:focus { border-color: var(--primary); }
-    input::placeholder { color: #444; }
+
+    input:focus {
+      border-color: var(--primary);
+    }
+
+    input::placeholder {
+      color: #444;
+    }
+
     .actions {
       display: flex;
       gap: 10px;
       margin-top: 18px;
       flex-wrap: wrap;
     }
+
     button {
       cursor: pointer;
       border: none;
@@ -99,28 +143,52 @@
       padding: 11px 22px;
       transition: background .18s, transform .1s;
     }
-    button:active { transform: scale(.97); }
+
+    button:active {
+      transform: scale(.97);
+    }
+
     .btn-play {
       background: var(--primary);
       color: #fff;
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       flex: 1;
       justify-content: center;
     }
-    .btn-play:hover { background: var(--primary-h); }
-    .btn-play svg { width: 16px; height: 16px; fill: #fff; flex-shrink: 0; }
+
+    .btn-play:hover {
+      background: var(--primary-h);
+    }
+
+    .btn-play svg {
+      width: 16px;
+      height: 16px;
+      fill: #fff;
+      flex-shrink: 0;
+    }
+
     .btn-copy {
       background: #252525;
       color: var(--text);
       border: 1px solid var(--border);
     }
-    .btn-copy:hover { background: #2e2e2e; }
+
+    .btn-copy:hover {
+      background: #2e2e2e;
+    }
+
     .btn-clear {
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--border);
     }
-    .btn-clear:hover { color: var(--text); }
+
+    .btn-clear:hover {
+      color: var(--text);
+    }
+
     .btn-detect {
       background: #1a3a5c;
       color: #5b9cf6;
@@ -133,9 +201,20 @@
       white-space: nowrap;
       transition: background .18s;
     }
-    .btn-detect:hover { background: #1e4a7a; }
-    .btn-detect:disabled { opacity: .5; cursor: not-allowed; }
-    #detect-card { margin-bottom: 16px; }
+
+    .btn-detect:hover {
+      background: #1e4a7a;
+    }
+
+    .btn-detect:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    #detect-card {
+      margin-bottom: 16px;
+    }
+
     .stream-result {
       background: var(--input-bg);
       border: 1px solid var(--border);
@@ -148,8 +227,17 @@
       gap: 10px;
       flex-wrap: wrap;
     }
-    .stream-result .stream-url { color: #5b9cf6; flex: 1; word-break: break-all; }
-    .stream-result .badge { flex-shrink: 0; }
+
+    .stream-result .stream-url {
+      color: #5b9cf6;
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .stream-result .badge {
+      flex-shrink: 0;
+    }
+
     .use-btn {
       background: var(--primary);
       color: #fff;
@@ -161,7 +249,11 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-    .use-btn:hover { background: var(--primary-h); }
+
+    .use-btn:hover {
+      background: var(--primary-h);
+    }
+
     .proxy-url-strip {
       display: none;
       margin-top: 16px;
@@ -174,7 +266,11 @@
       word-break: break-all;
       line-height: 1.5;
     }
-    .proxy-url-strip span { color: #5b9cf6; }
+
+    .proxy-url-strip span {
+      color: #5b9cf6;
+    }
+
     .status-bar {
       display: none;
       align-items: center;
@@ -182,6 +278,7 @@
       margin-top: 14px;
       font-size: .82rem;
     }
+
     .badge {
       padding: 3px 10px;
       border-radius: 20px;
@@ -189,29 +286,52 @@
       font-weight: 700;
       letter-spacing: .4px;
     }
-    .badge-info    { background:#1a3a5c; color:#5b9cf6; }
-    .badge-ok      { background:#1a3d2b; color:#4ade80; }
-    .badge-error   { background:#3d1a1a; color:#f87171; }
-    .badge-loading { background:#2a2a18; color:#facc15; }
+
+    .badge-info {
+      background: #1a3a5c;
+      color: #5b9cf6;
+    }
+
+    .badge-ok {
+      background: #1a3d2b;
+      color: #4ade80;
+    }
+
+    .badge-error {
+      background: #3d1a1a;
+      color: #f87171;
+    }
+
+    .badge-loading {
+      background: #2a2a18;
+      color: #facc15;
+    }
+
     .player-wrap {
       display: none;
       width: 100%;
       max-width: 860px;
       margin-top: 20px;
     }
-    .player-wrap.visible { display: block; }
+
+    .player-wrap.visible {
+      display: block;
+    }
+
     .player-card {
       background: #000;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
     }
+
     video {
       width: 100%;
       display: block;
       max-height: 480px;
       background: #000;
     }
+
     .error-box {
       display: none;
       background: #1f0a0a;
@@ -225,18 +345,30 @@
       width: 100%;
       max-width: 860px;
     }
-    .error-box.visible { display: block; }
+
+    .error-box.visible {
+      display: block;
+    }
+
     @media (max-width: 600px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .form-grid .full { grid-column: 1; }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid .full {
+        grid-column: 1;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <header>
     <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M8 5v14l11-7z" />
+      </svg>
     </div>
     <div>
       <h1>VideoProxy Player</h1>
@@ -246,12 +378,12 @@
 
   <!-- ── Auto-Detect Card ── -->
   <div class="card" id="detect-card">
-    <div style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:10px;">
+    <div
+      style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:10px;">
       🔍 Auto-Detect Stream from Page
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <input id="inp-page" type="url" placeholder="https://sansat.link/ch?id=17"
-        autocomplete="off" spellcheck="false"
+      <input id="inp-page" type="url" placeholder="https://sansat.link/ch?id=17" autocomplete="off" spellcheck="false"
         style="flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.92rem;padding:10px 12px;outline:none;" />
       <button class="btn-detect" id="btn-detect" onclick="autoDetect()">
         <span id="detect-label">Auto-Detect</span>
@@ -269,12 +401,14 @@
 
       <label class="full">
         Stream URLSSSS
-        <input id="inp-url" type="url" placeholder="https://example.com/stream.m3u8" autocomplete="off" spellcheck="false" />
+        <input id="inp-url" type="url" placeholder="https://example.com/stream.m3u8" autocomplete="off"
+          spellcheck="false" />
       </label>
 
       <label>
         Referer
-        <input id="inp-referer" type="url" placeholder="https://fisherman.click/" autocomplete="off" spellcheck="false" />
+        <input id="inp-referer" type="url" placeholder="https://fisherman.click/" autocomplete="off"
+          spellcheck="false" />
       </label>
 
       <label>
@@ -293,7 +427,9 @@
 
     <div class="actions">
       <button class="btn-play" onclick="play()">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
         Play
       </button>
       <button class="btn-copy" id="btn-copy" onclick="copyProxyUrl()">Copy URL</button>
@@ -322,11 +458,11 @@
     const $ = id => document.getElementById(id);
 
     function setStatus(type, msg) {
-      const labels = { info:'INFO', ok:'OK', error:'ERROR', loading:'LOADING' };
-      $('status-bar').style.display   = 'flex';
-      $('status-badge').className     = 'badge badge-' + type;
-      $('status-badge').textContent   = labels[type] || type.toUpperCase();
-      $('status-msg').textContent     = msg;
+      const labels = { info: 'INFO', ok: 'OK', error: 'ERROR', loading: 'LOADING' };
+      $('status-bar').style.display = 'flex';
+      $('status-badge').className = 'badge badge-' + type;
+      $('status-badge').textContent = labels[type] || type.toUpperCase();
+      $('status-msg').textContent = msg;
     }
 
     function showError(msg) {
@@ -344,7 +480,7 @@
     function detectType(url) {
       const u = url.toLowerCase().split('?')[0];
       if (u.endsWith('.m3u8') || u.endsWith('.m3u')) return 'hls';
-      if (u.endsWith('.mpd'))                         return 'dash';
+      if (u.endsWith('.mpd')) return 'dash';
       return 'mp4';
     }
 
@@ -354,12 +490,12 @@
 
       const params = new URLSearchParams();
       const referer = $('inp-referer').value.trim();
-      const origin  = $('inp-origin').value.trim();
-      const ua      = $('inp-ua').value.trim();
+      const origin = $('inp-origin').value.trim();
+      const ua = $('inp-ua').value.trim();
 
       if (referer) params.set('referer', referer);
-      if (origin)  params.set('origin', origin);
-      if (ua)      params.set('headers', btoa(JSON.stringify({ 'User-Agent': ua })));
+      if (origin) params.set('origin', origin);
+      if (ua) params.set('headers', btoa(JSON.stringify({ 'User-Agent': ua })));
 
       params.set('url', streamUrl);
       return window.location.origin + '/proxy?' + params.toString();
@@ -372,7 +508,7 @@
       $('proxy-url-text').textContent = url;
     }
 
-    ['inp-url','inp-referer','inp-origin','inp-ua'].forEach(id => {
+    ['inp-url', 'inp-referer', 'inp-origin', 'inp-ua'].forEach(id => {
       $(id).addEventListener('input', updateProxyStrip);
     });
 
@@ -386,118 +522,241 @@
       });
     }
 
-    let hlsInstance  = null;
+    let hlsInstance = null;
     let dashInstance = null;
 
     function destroyPlayers() {
-      if (hlsInstance)  { hlsInstance.destroy(); hlsInstance = null; }
-      if (dashInstance) { dashInstance.reset();   dashInstance = null; }
+      if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+      if (dashInstance) { dashInstance.reset(); dashInstance = null; }
       const v = $('video');
       v.pause();
       v.removeAttribute('src');
       v.load();
     }
 
+    // function play() {
+    //   clearError();
+    //   const proxyUrl  = buildProxyUrl();
+    //   if (!proxyUrl) { showError('Please enter a stream URL.'); return; }
+
+    //   const streamUrl = $('inp-url').value.trim();
+    //   const type      = detectType(streamUrl);
+    //   const video     = $('video');
+
+    //   destroyPlayers();
+    //   setStatus('loading', 'Connecting\u2026');
+    //   updateProxyStrip();
+    //   $('player-wrap').classList.add('visible');
+
+    //   if (type === 'hls') {
+    //     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+    //       hlsInstance = new Hls({
+    //         // ── Buffer tuning ──────────────────────────────────────────────
+    //         maxBufferLength:        60,   // buffer up to 60 s of video
+    //         maxMaxBufferLength:     120,  // allow burst up to 120 s
+    //         maxBufferSize:          120 * 1000 * 1000, // 120 MB buffer
+    //         maxBufferHole:          0.5,
+    //         // ── Startup ────────────────────────────────────────────────────
+    //         startLevel:             -1,   // auto-select quality
+    //         abrEwmaDefaultEstimate: 1_000_000, // start assuming 1 Mbps
+    //         // ── Retry / recovery ───────────────────────────────────────────
+    //         manifestLoadingMaxRetry:     6,
+    //         manifestLoadingRetryDelay:   500,
+    //         levelLoadingMaxRetry:        6,
+    //         fragLoadingMaxRetry:         6,
+    //         fragLoadingRetryDelay:       500,
+    //         // ── Performance ────────────────────────────────────────────────
+    //         enableWorker:           true, // offload demux to Web Worker
+    //         lowLatencyMode:         false,
+    //         progressive:            true,
+    //       });
+    //       hlsInstance.loadSource(proxyUrl);
+    //       hlsInstance.attachMedia(video);
+    //       hlsInstance.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+    //         const levels = data.levels.length;
+    //         setStatus('ok', 'HLS ready \u2014 ' + levels + ' quality level' + (levels !== 1 ? 's' : ''));
+    //         video.play().catch(() => {});
+    //       });
+    //       hlsInstance.on(Hls.Events.ERROR, (_, d) => {
+    //         if (d.fatal) {
+    //           if (d.type === Hls.ErrorTypes.NETWORK_ERROR) {
+    //             setStatus('loading', 'Network error, retrying\u2026');
+    //             hlsInstance.startLoad();
+    //           } else if (d.type === Hls.ErrorTypes.MEDIA_ERROR) {
+    //             setStatus('loading', 'Media error, recovering\u2026');
+    //             hlsInstance.recoverMediaError();
+    //           } else {
+    //             showError('HLS error: ' + d.type + ' \u2014 ' + d.details);
+    //           }
+    //         }
+    //       });
+    //     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    //       video.src = proxyUrl;
+    //       video.addEventListener('loadedmetadata', () => {
+    //         setStatus('ok', 'HLS (native) \u2014 playing');
+    //         video.play().catch(() => {});
+    //       }, { once: true });
+    //     } else {
+    //       showError('HLS is not supported in this browser.');
+    //     }
+    //   } else if (type === 'dash') {
+    //     dashInstance = dashjs.MediaPlayer().create();
+    //     dashInstance.initialize(video, proxyUrl, true);
+    //     dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+    //       setStatus('ok', 'DASH stream ready \u2014 playing');
+    //     });
+    //     dashInstance.on(dashjs.MediaPlayer.events.ERROR, e => {
+    //       showError('DASH error: ' + JSON.stringify(e.error));
+    //     });
+    //   } else {
+    //     video.src = proxyUrl;
+    //     video.addEventListener('canplay', () => {
+    //       setStatus('ok', 'Stream ready \u2014 playing');
+    //       video.play().catch(() => {});
+    //     }, { once: true });
+    //     video.addEventListener('error', () => {
+    //       showError('Video error: ' + (video.error ? video.error.message : 'unknown'));
+    //     }, { once: true });
+    //   }
+    // }
+
+
     function play() {
       clearError();
-      const proxyUrl  = buildProxyUrl();
-      if (!proxyUrl) { showError('Please enter a stream URL.'); return; }
+
+      const proxyUrl = buildProxyUrl();
+      if (!proxyUrl) {
+        showError('Please enter a stream URL.');
+        return;
+      }
 
       const streamUrl = $('inp-url').value.trim();
-      const type      = detectType(streamUrl);
-      const video     = $('video');
+      const type = detectType(streamUrl);
+      const video = $('video');
 
       destroyPlayers();
-      setStatus('loading', 'Connecting\u2026');
-      updateProxyStrip();
+
+      setStatus('loading', 'Connecting…');
+
       $('player-wrap').classList.add('visible');
+
+      // 🚨 IMPORTANT: reduce preload
+      video.preload = "metadata";  // instead of auto
 
       if (type === 'hls') {
         if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+
           hlsInstance = new Hls({
-            // ── Buffer tuning ──────────────────────────────────────────────
-            maxBufferLength:        60,   // buffer up to 60 s of video
-            maxMaxBufferLength:     120,  // allow burst up to 120 s
-            maxBufferSize:          120 * 1000 * 1000, // 120 MB buffer
-            maxBufferHole:          0.5,
-            // ── Startup ────────────────────────────────────────────────────
-            startLevel:             -1,   // auto-select quality
-            abrEwmaDefaultEstimate: 1_000_000, // start assuming 1 Mbps
-            // ── Retry / recovery ───────────────────────────────────────────
-            manifestLoadingMaxRetry:     6,
-            manifestLoadingRetryDelay:   500,
-            levelLoadingMaxRetry:        6,
-            fragLoadingMaxRetry:         6,
-            fragLoadingRetryDelay:       500,
-            // ── Performance ────────────────────────────────────────────────
-            enableWorker:           true, // offload demux to Web Worker
-            lowLatencyMode:         false,
-            progressive:            true,
+            // ✅ MUCH smaller buffer (critical)
+            maxBufferLength: 10,          // was 60
+            maxMaxBufferLength: 20,       // was 120
+            maxBufferSize: 20 * 1000 * 1000, // was 120MB → now 20MB
+
+            maxBufferHole: 0.5,
+
+            // startup
+            startLevel: -1,
+            abrEwmaDefaultEstimate: 500000, // slower start (reduce spike)
+
+            // retries (keep but reduce spam)
+            manifestLoadingMaxRetry: 3,
+            levelLoadingMaxRetry: 3,
+            fragLoadingMaxRetry: 3,
+            fragLoadingRetryDelay: 1000,
+
+            // performance
+            enableWorker: true,
+            lowLatencyMode: false,
+            progressive: true,
           });
+
           hlsInstance.loadSource(proxyUrl);
           hlsInstance.attachMedia(video);
+
           hlsInstance.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
-            const levels = data.levels.length;
-            setStatus('ok', 'HLS ready \u2014 ' + levels + ' quality level' + (levels !== 1 ? 's' : ''));
-            video.play().catch(() => {});
+            setStatus('ok', `HLS ready — ${data.levels.length} qualities`);
+            video.play().catch(() => { });
           });
+
           hlsInstance.on(Hls.Events.ERROR, (_, d) => {
             if (d.fatal) {
               if (d.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                setStatus('loading', 'Network error, retrying\u2026');
+                setStatus('loading', 'Retrying…');
                 hlsInstance.startLoad();
               } else if (d.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                setStatus('loading', 'Media error, recovering\u2026');
                 hlsInstance.recoverMediaError();
               } else {
-                showError('HLS error: ' + d.type + ' \u2014 ' + d.details);
+                showError(`HLS error: ${d.details}`);
               }
             }
           });
+
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = proxyUrl;
+
           video.addEventListener('loadedmetadata', () => {
-            setStatus('ok', 'HLS (native) \u2014 playing');
-            video.play().catch(() => {});
+            setStatus('ok', 'Playing (native HLS)');
+            video.play().catch(() => { });
           }, { once: true });
+
         } else {
-          showError('HLS is not supported in this browser.');
+          showError('HLS not supported');
         }
+
       } else if (type === 'dash') {
+
         dashInstance = dashjs.MediaPlayer().create();
+
+        // ✅ limit buffering in DASH too
+        dashInstance.updateSettings({
+          streaming: {
+            buffer: {
+              bufferTimeAtTopQuality: 10,
+              bufferTimeAtTopQualityLongForm: 20,
+            }
+          }
+        });
+
         dashInstance.initialize(video, proxyUrl, true);
+
         dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-          setStatus('ok', 'DASH stream ready \u2014 playing');
+          setStatus('ok', 'DASH ready');
         });
+
         dashInstance.on(dashjs.MediaPlayer.events.ERROR, e => {
-          showError('DASH error: ' + JSON.stringify(e.error));
+          showError('DASH error');
         });
+
       } else {
         video.src = proxyUrl;
+
         video.addEventListener('canplay', () => {
-          setStatus('ok', 'Stream ready \u2014 playing');
-          video.play().catch(() => {});
+          setStatus('ok', 'Playing');
+          video.play().catch(() => { });
         }, { once: true });
+
         video.addEventListener('error', () => {
-          showError('Video error: ' + (video.error ? video.error.message : 'unknown'));
+          showError('Video error');
         }, { once: true });
       }
     }
 
     // ── Auto-Detect ───────────────────────────────────────────────────────
+
+
     function setDetectStatus(type, msg) {
-      const labels = { info:'INFO', ok:'OK', error:'ERROR', loading:'SCANNING' };
-      $('detect-status').style.display   = 'flex';
-      $('detect-badge').className        = 'badge badge-' + type;
-      $('detect-badge').textContent      = labels[type] || type.toUpperCase();
-      $('detect-msg').textContent        = msg;
+      const labels = { info: 'INFO', ok: 'OK', error: 'ERROR', loading: 'SCANNING' };
+      $('detect-status').style.display = 'flex';
+      $('detect-badge').className = 'badge badge-' + type;
+      $('detect-badge').textContent = labels[type] || type.toUpperCase();
+      $('detect-msg').textContent = msg;
     }
 
     function useStream(url, referer, origin, userAgent) {
-      $('inp-url').value     = url;
+      $('inp-url').value = url;
       $('inp-referer').value = referer || '';
-      $('inp-origin').value  = origin  || '';
-      $('inp-ua').value      = userAgent || $('inp-ua').value;
+      $('inp-origin').value = origin || '';
+      $('inp-ua').value = userAgent || $('inp-ua').value;
       updateProxyStrip();
       // Scroll to player card
       document.querySelector('.card:not(#detect-card)').scrollIntoView({ behavior: 'smooth' });
@@ -553,7 +812,7 @@
         results.querySelectorAll('.use-btn').forEach(b => {
           b.addEventListener('click', () => {
             const idx = parseInt(b.dataset.idx);
-            const s   = all[idx];
+            const s = all[idx];
             useStream(s.url, data.referer, data.origin, data.userAgent);
           });
         });
@@ -571,25 +830,26 @@
     function clearAll() {
       destroyPlayers();
       clearError();
-      $('inp-url').value     = '';
+      $('inp-url').value = '';
       $('inp-referer').value = '';
-      $('inp-origin').value  = '';
-      $('inp-ua').value      = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+      $('inp-origin').value = '';
+      $('inp-ua').value = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
       $('proxy-strip').style.display = 'none';
-      $('status-bar').style.display  = 'none';
+      $('status-bar').style.display = 'none';
       $('player-wrap').classList.remove('visible');
     }
 
     $('inp-url').addEventListener('keydown', e => { if (e.key === 'Enter') play(); });
 
     // Pre-fill from ?url= / ?referer= / ?origin= query params
-    (function() {
+    (function () {
       const p = new URLSearchParams(window.location.search);
-      if (p.get('url'))     $('inp-url').value     = p.get('url');
-      if (p.get('referer')) $('inp-referer').value  = p.get('referer');
-      if (p.get('origin'))  $('inp-origin').value   = p.get('origin');
-      if (p.get('url'))     updateProxyStrip();
+      if (p.get('url')) $('inp-url').value = p.get('url');
+      if (p.get('referer')) $('inp-referer').value = p.get('referer');
+      if (p.get('origin')) $('inp-origin').value = p.get('origin');
+      if (p.get('url')) updateProxyStrip();
     })();
   </script>
 </body>
+
 </html>
