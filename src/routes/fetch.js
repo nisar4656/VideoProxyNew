@@ -33,19 +33,6 @@ const MANIFEST_RE = /\.m3u8|\.mpd/i;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 /**
- * Extract the real client IP from the incoming request.
- * Respects X-Forwarded-For set by nginx / reverse-proxies.
- */
-function getClientIp(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) {
-    // X-Forwarded-For can be a comma-separated list — the leftmost is the origin client
-    return forwarded.split(',')[0].trim();
-  }
-  return req.headers['x-real-ip'] || req.ip || req.connection?.remoteAddress || null;
-}
-
-/**
  * GET /fetch?page=<encoded-url>
  * GET /fetch?url=<encoded-url>
  *
@@ -74,24 +61,8 @@ router.get('/', async (req, res) => {
   let context = null, page = null;
 
   try {
-    const clientIp = getClientIp(req);
-
-    // Headers injected into every upstream request made by Playwright.
-    // This makes the upstream server see the visitor's IP instead of the proxy's IP.
-    const extraHTTPHeaders = {};
-    if (clientIp) {
-      extraHTTPHeaders['X-Forwarded-For']   = clientIp;
-      extraHTTPHeaders['X-Real-IP']         = clientIp;
-      extraHTTPHeaders['True-Client-IP']    = clientIp;
-      extraHTTPHeaders['CF-Connecting-IP']  = clientIp;
-    }
-
     const b = await getBrowser();
-    context = await b.newContext({
-      userAgent: UA,
-      viewport: { width: 1280, height: 720 },
-      ...(Object.keys(extraHTTPHeaders).length ? { extraHTTPHeaders } : {}),
-    });
+    context = await b.newContext({ userAgent: UA, viewport: { width: 1280, height: 720 } });
 
     // Block fonts/images to speed up page load
     await context.route(/\.(png|jpg|jpeg|gif|svg|woff2?|ico)(\?|$)/i, route => route.abort());

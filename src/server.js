@@ -14,10 +14,6 @@ try {
 
 const app = express();
 
-// Trust the first proxy (nginx) so req.ip reflects the real client IP
-// rather than the loopback address (127.0.0.1).
-app.set('trust proxy', 1);
-
 app.use((req, res, next) => {
   const origin = config.ALLOWED_ORIGINS === '*' ? '*' : config.ALLOWED_ORIGINS;
   res.setHeader('Access-Control-Allow-Origin', origin);
