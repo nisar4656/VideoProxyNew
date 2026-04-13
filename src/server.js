@@ -37,8 +37,53 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/proxy', proxyRouter);
 
+/**
+ * Extract client IP from the request, respecting X-Forwarded-For set by nginx.
+ */
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.headers['x-real-ip'] || req.ip || req.connection?.remoteAddress || null;
+}
+
 if (fetchRouter) {
   app.use('/fetch', fetchRouter);
+
+  /**
+   * GET /proxer?id=<encoded-url>
+   * Like /fetch but returns the client's IP in the response.
+   */
+  app.get('/proxer', (req, res, next) => {
+    const pageParam = req.query.id || req.query.page;
+    const pageUrl = pageParam ? decodeURIComponent(pageParam) : null;
+
+    if (!pageUrl) {
+      return res.status(400).json({
+        error: 'Missing ?id= parameter',
+        example: '/proxer?id=https%3A%2F%2Fexample.com%2Fwatch%3Fid%3D1',
+      });
+    }
+
+    const clientIp = getClientIp(req);
+
+    // Forward to fetch, then inject client IP into response
+    const originalJson = res.json;
+    res.json = function(data) {
+      if (data && typeof data === 'object') {
+        data.clientIp = clientIp;
+        data.fetchedFrom = clientIp;
+      }
+      return originalJson.call(this, data);
+    };
+
+    // Inject into req.query and forward to fetchRouter
+    req.query = Object.assign({}, req.query, { page: pageUrl });
+    req.url = '/';
+    return fetchRouter(req, res, next);
+  });
+
   app.get(/^\/getURL=(.+)$/i, (req, res, next) => {
     // Use originalUrl to avoid Express path normalization stripping one slash
     const match = req.originalUrl.match(/^\/getURL=([^?]+)(?:\?.*)?$/i);
